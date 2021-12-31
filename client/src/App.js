@@ -1,31 +1,71 @@
 import React, { Component } from "react";
-import SimpleStorageContract from "./contracts/SimpleStorage.json";
+// import SimpleStorageContract from "./contracts/SimpleStorage.json";
 import getWeb3 from "./getWeb3";
-
+import Web3 from "web3";
 import "./App.css";
 
 class App extends Component {
   state = { storageValue: 0, web3: null, accounts: null, contract: null };
+  dataStruct = {
+    message: "I acknowledge blah blah blah"
+  }
+
+  domainSeparator = {
+    name: "EIP712",
+    version: "2.2",
+    chainId: "4",
+    verifyingContract: "",
+    salt: "0x43efba6b4ccb1b6faa2625fe562bdd9a23260359"
+  }
+
+  // code signing
+  domain = [
+    { name: "name", type: "string" },
+    { name: "version", type: "string" },
+    { name: "chainId", type: "uint256" },
+    { name: "verifyingContract", type: "address" },
+    { name: "salt", type: "bytes32" },
+  ];
+
+  dS = [
+    { name: "message", type: "string"}
+  ];
+
+  data = JSON.stringify({
+    types: {
+      EIP712Domain: this.domain,
+    },
+    message: this.dataStruct
+  })
 
   componentDidMount = async () => {
     try {
       // Get network provider and web3 instance.
-      const web3 = await getWeb3();
+      // const web3 = await getWeb3();
+      let web3;
+      if(window.ethereum){
+        web3 = new Web3(window.ethereum);
+        console.log(web3);
+        let w = await window.ethereum.enable(); 
+        console.log(w);
+      }
 
       // Use web3 to get the user's accounts.
       const accounts = await web3.eth.getAccounts();
 
       // Get the contract instance.
       const networkId = await web3.eth.net.getId();
-      const deployedNetwork = SimpleStorageContract.networks[networkId];
-      const instance = new web3.eth.Contract(
-        SimpleStorageContract.abi,
-        deployedNetwork && deployedNetwork.address,
-      );
+      // const deployedNetwork = SimpleStorageContract.networks[networkId];
+      // const instance = new web3.eth.Contract(
+      //   SimpleStorageContract.abi,
+      //   deployedNetwork && deployedNetwork.address,
+      // );
 
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      this.setState({ web3, accounts, contract: instance }, this.runExample);
+      this.setState({ web3, accounts }
+        // , this.runExample
+        );
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
