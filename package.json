@@ -1,0 +1,27 @@
+{
+  "name": "eip712",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "solc": "^0.8.2",
+    "truffle": "^5.4.26"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DhruvGodambe/eip712.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DhruvGodambe/eip712/issues"
+  },
+  "homepage": "https://github.com/DhruvGodambe/eip712#readme"
+}

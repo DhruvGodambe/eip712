@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-// import SimpleStorageContract from "./contracts/SimpleStorage.json";
+import EIP712Contract from "./contracts/EIP712.json";
 import getWeb3 from "./getWeb3";
 import Web3 from "web3";
 import "./App.css";
@@ -13,9 +13,9 @@ class App extends Component {
   domainSeparator = {
     name: "EIP712",
     version: "2.2",
-    chainId: "4",
-    verifyingContract: "",
-    salt: "0x43efba6b4ccb1b6faa2625fe562bdd9a23260359"
+    chainId: 1337,
+    verifyingContract: "0x7bBD77cd941426D77ddaA623Bc9b1F6f0a07db42",
+    salt: "0xf2d857f4a3edcb9b78b4d503bfe733db1e3f6cdc2b7971ee739626c97e86a558"
   }
 
   // code signing
@@ -33,10 +33,45 @@ class App extends Component {
 
   data = JSON.stringify({
     types: {
-      EIP712Domain: this.domain,
+      EIP712Domain: this.domain
     },
+    domain: this.domainSeparator,
+    primaryType: "EIP712Domain",
     message: this.dataStruct
   })
+
+  signMessage = async (web3, w) => {
+    const networkId = await web3.eth.net.getId();
+    web3.currentProvider.sendAsync(
+      {
+          method: "eth_signTypedData_v3",
+          params: [w[0], this.data],
+          from: w[0]
+      },
+      async function(err, result) {
+          if (err) {
+              return console.log(err.code);
+          }
+          const signature = result.result.substring(2);
+          const r = "0x" + signature.substring(0, 64);
+          const s = "0x" + signature.substring(64, 128);
+          const v = parseInt(signature.substring(128, 130), 16);
+          // The signature is now comprised of r, s, and v.
+          console.log(signature)
+          console.log("r: ", r)
+          console.log("s: ", s)
+          console.log("v: ", v)
+          // Get the contract instance.
+          const deployedNetwork = EIP712Contract.networks[networkId];
+          const instance = new web3.eth.Contract(
+            EIP712Contract.abi,
+            deployedNetwork && deployedNetwork.address,
+            );
+            console.log(await instance.methods.verify(w[0], r, s, v).call());
+        }
+      );
+
+  }
 
   componentDidMount = async () => {
     try {
@@ -45,27 +80,25 @@ class App extends Component {
       let web3;
       if(window.ethereum){
         web3 = new Web3(window.ethereum);
-        console.log(web3);
+        console.log(web3.utils.hexToNumber(web3.currentProvider.chainId));
         let w = await window.ethereum.enable(); 
         console.log(w);
+        await this.signMessage(web3, w);
+        // const tx = await web3.eth.sendTransaction({
+        //   from: w[0],
+        //   to: "0x34Dc3fd353a77Eaef9832f759611a0024fEf2069",
+        //   value: web3.utils.toWei("0.1", "ether"),
+        //   gas: "30000"
+        // })
+        // console.log(tx);
+        // Use web3 to get the user's accounts.
+        const accounts = await web3.eth.getAccounts();
+        this.setState({ web3, accounts }
+          // , this.runExample
+          );
       }
-
-      // Use web3 to get the user's accounts.
-      const accounts = await web3.eth.getAccounts();
-
-      // Get the contract instance.
-      const networkId = await web3.eth.net.getId();
-      // const deployedNetwork = SimpleStorageContract.networks[networkId];
-      // const instance = new web3.eth.Contract(
-      //   SimpleStorageContract.abi,
-      //   deployedNetwork && deployedNetwork.address,
-      // );
-
       // Set web3, accounts, and contract to the state, and then proceed with an
       // example of interacting with the contract's methods.
-      this.setState({ web3, accounts }
-        // , this.runExample
-        );
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
