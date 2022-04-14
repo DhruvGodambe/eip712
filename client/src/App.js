@@ -6,18 +6,15 @@ import "./App.css";
 
 class App extends Component {
   state = { storageValue: 0, web3: null, accounts: null, contract: null };
-  dataStruct = {
-    message: "I acknowledge blah blah blah"
-  }
-
+  
   domainSeparator = {
     name: "EIP712",
     version: "2.2",
-    chainId: 1337,
+    chainId: 3,
     verifyingContract: "0x7bBD77cd941426D77ddaA623Bc9b1F6f0a07db42",
     salt: "0xf2d857f4a3edcb9b78b4d503bfe733db1e3f6cdc2b7971ee739626c97e86a558"
   }
-
+  
   // code signing
   domain = [
     { name: "name", type: "string" },
@@ -27,16 +24,21 @@ class App extends Component {
     { name: "salt", type: "bytes32" },
   ];
 
+  dataStruct = {
+    message: "I acknowledge blah blah blah"
+  }
+
   dS = [
     { name: "message", type: "string"}
   ];
 
   data = JSON.stringify({
     types: {
-      EIP712Domain: this.domain
+      EIP712Domain: this.domain,
+      Message: this.dS
     },
     domain: this.domainSeparator,
-    primaryType: "EIP712Domain",
+    primaryType: "Message",
     message: this.dataStruct
   })
 
@@ -67,7 +69,7 @@ class App extends Component {
             EIP712Contract.abi,
             deployedNetwork && deployedNetwork.address,
             );
-            console.log(await instance.methods.verify(w[0], r, s, v).call());
+            console.log(await instance.methods.verify(w[0], r, s, v).send({from: w[0]}));
         }
       );
 
@@ -84,6 +86,7 @@ class App extends Component {
         let w = await window.ethereum.enable(); 
         console.log(w);
         await this.signMessage(web3, w);
+        
         // const tx = await web3.eth.sendTransaction({
         //   from: w[0],
         //   to: "0x34Dc3fd353a77Eaef9832f759611a0024fEf2069",

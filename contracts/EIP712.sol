@@ -19,10 +19,14 @@ contract EIP712 {
        salt
     ));
 
-    bytes32 messageHash = keccak256(abi.encodePacked(
+    bytes32 public messageHash = keccak256(abi.encodePacked(
+        // "\\x19\\x01",
         "\x19Ethereum Signed Message:\n",
         DOMAIN_SEPARATOR,
-        keccak256("I acknowledge blah blah blah")
+        keccak256(abi.encode(   
+            keccak256(abi.encodePacked(message)),
+            keccak256("I acknowledge blah blah blah")
+        ))
     ));
 
     function verify(address signer,bytes32 r,bytes32 s,uint8 v) external view returns(bool){
